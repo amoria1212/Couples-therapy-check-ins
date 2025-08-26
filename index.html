@@ -89,6 +89,51 @@
             padding: 1.5rem;
             border-radius: 0.75rem;
         }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .share-option {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #f9fafb;
+        }
+        .share-option:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .share-option:active {
+            transform: translateY(0);
+        }
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-8">
@@ -98,6 +143,9 @@
 
         <!-- Action Buttons -->
         <div class="no-print flex flex-wrap gap-3 mb-6 justify-center sm:justify-end">
+            <button id="shareBtn" class="btn bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-2 rounded-lg">
+                🔗 Share
+            </button>
             <button id="exportBtn" class="btn bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-lg">
                 📄 Export Responses
             </button>
@@ -218,6 +266,64 @@
         </p>
     </div>
 
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">Share Your Responses</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            
+            <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p class="text-sm text-yellow-800">
+                    <strong>Privacy Reminder:</strong> This contains personal and sensitive information. Please share thoughtfully and only with trusted individuals.
+                </p>
+            </div>
+
+            <div class="space-y-3">
+                <div class="share-option" id="shareEmail">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-3">📧</span>
+                        <div>
+                            <div class="font-semibold text-gray-800">Email</div>
+                            <div class="text-sm text-gray-600">Send via your email client</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="share-option" id="shareCopy">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-3">📋</span>
+                        <div>
+                            <div class="font-semibold text-gray-800">Copy to Clipboard</div>
+                            <div class="text-sm text-gray-600">Copy formatted text to paste elsewhere</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="share-option hidden" id="shareNative">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-3">🔗</span>
+                        <div>
+                            <div class="font-semibold text-gray-800">Share</div>
+                            <div class="text-sm text-gray-600">Use your device's share options</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="share-option" id="shareDownload">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-3">💾</span>
+                        <div>
+                            <div class="font-semibold text-gray-800">Download File</div>
+                            <div class="text-sm text-gray-600">Save as a text file</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const storagePrefix = 'couples_homework_';
 
@@ -268,49 +374,95 @@
                 });
             });
         }
-        
-        function exportData() {
+
+        function generateShareContent() {
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             
-            let exportText = `Couples Therapy Homework: The Attachment-Informed Love Repair\n`;
-            exportText += `Date: ${dateStr}\n`;
-            exportText += `${'='.repeat(70)}\n\n`;
+            let content = `Couples Therapy Homework: The Attachment-Informed Love Repair\n`;
+            content += `Date: ${dateStr}\n`;
+            content += `${'='.repeat(70)}\n\n`;
 
-            // Part 1
-            exportText += `PART 1: Proactive Love — Filling the Emotional Tank\n`;
-            exportText += `${'-'.repeat(35)}\n\n`;
-            exportText += `Partner 1's Love Language: ${document.querySelector('[data-key="p1-love-language"]').value || 'Not completed.'}\n`;
-            exportText += `Partner 2's Love Language: ${document.querySelector('[data-key="p2-love-language"]').value || 'Not completed.'}\n\n`;
-
-            exportText += `Chosen Action Steps:\n`;
-            document.querySelectorAll('input[type="checkbox"][data-key]').forEach(checkbox => {
-                if (checkbox.checked) {
-                    exportText += `- ${checkbox.parentNode.textContent.trim()}\n`;
-                }
-            });
-            exportText += `\nMy specific action steps:\n${localStorage.getItem(`${storagePrefix}my-action-steps`) || 'Not completed.'}\n\n`;
+            // Part 1 - Love Languages
+            const p1Language = document.querySelector('[data-key="p1-love-language"]').value.trim();
+            const p2Language = document.querySelector('[data-key="p2-love-language"]').value.trim();
+            const actionSteps = document.querySelector('[data-key="my-action-steps"]').value.trim();
             
-            // Part 2 - New Check-in
-            exportText += `PART 2: The Weekly Emotional Check-in\n`;
-            exportText += `${'-'.repeat(35)}\n\n`;
-            exportText += `Appreciation & Connection:\n`;
-            exportText += `${localStorage.getItem(`${storagePrefix}weekly-appreciation-journal`) || 'Not completed.'}\n\n`;
-            exportText += `Emotional Highs this week:\n`;
-            exportText += `${localStorage.getItem(`${storagePrefix}highs-this-week`) || 'Not completed.'}\n\n`;
-            exportText += `Disconnection & Longing:\n`;
-            exportText += `${localStorage.getItem(`${storagePrefix}disconnection-longing`) || 'Not completed.'}\n\n`;
-            exportText += `Emotional Lows this week:\n`;
-            exportText += `${localStorage.getItem(`${storagePrefix}lows-this-week`) || 'Not completed.'}\n\n`;
+            if (p1Language || p2Language || actionSteps) {
+                content += `PART 1: Proactive Love — Filling the Emotional Tank\n`;
+                content += `${'-'.repeat(50)}\n\n`;
+                
+                if (p1Language) content += `Partner 1's Love Language: ${p1Language}\n`;
+                if (p2Language) content += `Partner 2's Love Language: ${p2Language}\n\n`;
+
+                // Collect selected action steps
+                const selectedActions = [];
+                document.querySelectorAll('input[type="checkbox"][data-key^="love-lang-"]').forEach(checkbox => {
+                    if (checkbox.checked) {
+                        const label = checkbox.parentNode.textContent.trim();
+                        selectedActions.push(`- ${label}`);
+                    }
+                });
+                
+                if (selectedActions.length > 0) {
+                    content += `Selected Action Steps:\n`;
+                    selectedActions.forEach(action => content += `${action}\n`);
+                    content += `\n`;
+                }
+
+                if (actionSteps) {
+                    content += `My Specific Action Steps:\n${actionSteps}\n\n`;
+                }
+            }
+
+            // Part 2 - Emotional Check-in
+            const appreciation = document.querySelector('[data-key="weekly-appreciation-journal"]').value.trim();
+            const highs = document.querySelector('[data-key="highs-this-week"]').value.trim();
+            const disconnection = document.querySelector('[data-key="disconnection-longing"]').value.trim();
+            const lows = document.querySelector('[data-key="lows-this-week"]').value.trim();
+            
+            if (appreciation || highs || disconnection || lows) {
+                content += `PART 2: Weekly Emotional Check-in\n`;
+                content += `${'-'.repeat(35)}\n\n`;
+                
+                if (appreciation || highs) {
+                    content += `Appreciation & Connection:\n`;
+                    if (appreciation) content += `${appreciation}\n`;
+                    if (highs) content += `\nEmotional Highs: ${highs}\n`;
+                    content += `\n`;
+                }
+                
+                if (disconnection || lows) {
+                    content += `Disconnection & Longing:\n`;
+                    if (disconnection) content += `${disconnection}\n`;
+                    if (lows) content += `\nEmotional Lows: ${lows}\n`;
+                    content += `\n`;
+                }
+            }
 
             // Therapy Session Check-in
-            exportText += `THERAPY SESSION CHECK-IN\n`;
-            exportText += `${'-'.repeat(35)}\n\n`;
-            exportText += `Emotional Support:\n${localStorage.getItem(`${storagePrefix}emotional-support`) || 'Not completed.'}\n\n`;
-            exportText += `Comfort and Trust:\n${localStorage.getItem(`${storagePrefix}comfort-trust`) || 'Not completed.'}\n\n`;
-            exportText += `Unspoken Thoughts:\n${localStorage.getItem(`${storagePrefix}unspoken-thoughts`) || 'Not completed.'}\n\n`;
+            const support = document.querySelector('[data-key="emotional-support"]').value.trim();
+            const comfort = document.querySelector('[data-key="comfort-trust"]').value.trim();
+            const unspoken = document.querySelector('[data-key="unspoken-thoughts"]').value.trim();
             
-            const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
+            if (support || comfort || unspoken) {
+                content += `THERAPY SESSION CHECK-IN\n`;
+                content += `${'-'.repeat(25)}\n\n`;
+                
+                if (support) content += `Emotional Support:\n${support}\n\n`;
+                if (comfort) content += `Comfort and Trust:\n${comfort}\n\n`;
+                if (unspoken) content += `Unspoken Thoughts:\n${unspoken}\n\n`;
+            }
+
+            return content;
+        }
+        
+        function exportData() {
+            const content = generateShareContent();
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = `Couples_Homework_${dateStr}.txt`;
@@ -336,13 +488,148 @@
             alert("All responses have been cleared.");
         }
 
+        // Share functionality
+        function openShareModal() {
+            document.getElementById('shareModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function shareViaEmail() {
+            const content = generateShareContent();
+            const subject = encodeURIComponent('Couples Therapy Homework - The Attachment-Informed Love Repair');
+            const body = encodeURIComponent(content);
+            const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
+            
+            try {
+                window.location.href = mailtoUrl;
+                closeShareModal();
+            } catch (error) {
+                console.error('Email sharing failed:', error);
+                alert('Unable to open email client. Please copy the content instead.');
+            }
+        }
+
+        function shareViaCopy() {
+            const content = generateShareContent();
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(content)
+                    .then(() => {
+                        alert('Content copied to clipboard!');
+                        closeShareModal();
+                    })
+                    .catch(error => {
+                        console.error('Clipboard copy failed:', error);
+                        fallbackCopyToClipboard(content);
+                    });
+            } else {
+                fallbackCopyToClipboard(content);
+            }
+        }
+
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('Content copied to clipboard!');
+                    closeShareModal();
+                } else {
+                    alert('Unable to copy to clipboard. Please select and copy the content manually.');
+                }
+            } catch (error) {
+                console.error('Fallback copy failed:', error);
+                alert('Unable to copy to clipboard. Please select and copy the content manually.');
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function shareViaNative() {
+            const content = generateShareContent();
+            const title = 'Couples Therapy Homework';
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: content
+                })
+                .then(() => {
+                    closeShareModal();
+                })
+                .catch(error => {
+                    if (error.name !== 'AbortError') {
+                        console.error('Native sharing failed:', error);
+                        alert('Sharing failed. Please try another option.');
+                    }
+                });
+            }
+        }
+
+        function shareViaDownload() {
+            const content = generateShareContent();
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Couples_Homework_${dateStr.replace(/\s+/g, '_')}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            closeShareModal();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
             setupAutoSave();
             
+            // Existing button event listeners
             document.getElementById('exportBtn').addEventListener('click', exportData);
             document.getElementById('printBtn').addEventListener('click', () => window.print());
             document.getElementById('clearBtn').addEventListener('click', clearData);
+            
+            // Share functionality event listeners
+            document.getElementById('shareBtn').addEventListener('click', openShareModal);
+            document.getElementById('closeModal').addEventListener('click', closeShareModal);
+            
+            // Share options
+            document.getElementById('shareEmail').addEventListener('click', shareViaEmail);
+            document.getElementById('shareCopy').addEventListener('click', shareViaCopy);
+            document.getElementById('shareDownload').addEventListener('click', shareViaDownload);
+            
+            // Check if native sharing is available
+            if (navigator.share) {
+                document.getElementById('shareNative').classList.remove('hidden');
+                document.getElementById('shareNative').addEventListener('click', shareViaNative);
+            }
+            
+            // Close modal when clicking backdrop
+            document.getElementById('shareModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeShareModal();
+                }
+            });
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !document.getElementById('shareModal').classList.contains('hidden')) {
+                    closeShareModal();
+                }
+            });
         });
     </script>
 </body>
