@@ -375,32 +375,62 @@
             });
         }
 
-        function generateShareContent() {
+        function collectAllData() {
+            const data = {
+                textFields: {},
+                checkboxes: {}
+            };
+            
+            // Collect all textarea values directly from form elements
+            document.querySelectorAll('textarea[data-key]').forEach(textarea => {
+                const key = textarea.getAttribute('data-key');
+                const value = textarea.value.trim();
+                if (value) {
+                    data.textFields[key] = value;
+                }
+            });
+            
+            // Collect all checkbox states directly from form elements
+            document.querySelectorAll('input[type="checkbox"][data-key]').forEach(checkbox => {
+                const key = checkbox.getAttribute('data-key');
+                if (checkbox.checked) {
+                    data.checkboxes[key] = checkbox.parentNode.textContent.trim();
+                }
+            });
+            
+            return data;
+        }
+
+        function formatDataForSharing() {
+            const data = collectAllData();
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             
             let content = `Couples Therapy Homework: The Attachment-Informed Love Repair\n`;
+            content += `Completed by: [Your Name]\n`;
             content += `Date: ${dateStr}\n`;
+            content += `Therapist: Janice LaFountaine, MS, LMFT\n`;
             content += `${'='.repeat(70)}\n\n`;
 
             // Part 1 - Love Languages
-            const p1Language = document.querySelector('[data-key="p1-love-language"]').value.trim();
-            const p2Language = document.querySelector('[data-key="p2-love-language"]').value.trim();
-            const actionSteps = document.querySelector('[data-key="my-action-steps"]').value.trim();
+            const p1Language = data.textFields['p1-love-language'];
+            const p2Language = data.textFields['p2-love-language'];
+            const actionSteps = data.textFields['my-action-steps'];
+            const hasLoveLanguageData = p1Language || p2Language || actionSteps || Object.keys(data.checkboxes).some(key => key.startsWith('love-lang-'));
             
-            if (p1Language || p2Language || actionSteps) {
+            if (hasLoveLanguageData) {
                 content += `PART 1: Proactive Love — Filling the Emotional Tank\n`;
                 content += `${'-'.repeat(50)}\n\n`;
                 
                 if (p1Language) content += `Partner 1's Love Language: ${p1Language}\n`;
-                if (p2Language) content += `Partner 2's Love Language: ${p2Language}\n\n`;
+                if (p2Language) content += `Partner 2's Love Language: ${p2Language}\n`;
+                if (p1Language || p2Language) content += `\n`;
 
                 // Collect selected action steps
                 const selectedActions = [];
-                document.querySelectorAll('input[type="checkbox"][data-key^="love-lang-"]').forEach(checkbox => {
-                    if (checkbox.checked) {
-                        const label = checkbox.parentNode.textContent.trim();
-                        selectedActions.push(`- ${label}`);
+                Object.keys(data.checkboxes).forEach(key => {
+                    if (key.startsWith('love-lang-')) {
+                        selectedActions.push(`• ${data.checkboxes[key]}`);
                     }
                 });
                 
@@ -416,10 +446,10 @@
             }
 
             // Part 2 - Emotional Check-in
-            const appreciation = document.querySelector('[data-key="weekly-appreciation-journal"]').value.trim();
-            const highs = document.querySelector('[data-key="highs-this-week"]').value.trim();
-            const disconnection = document.querySelector('[data-key="disconnection-longing"]').value.trim();
-            const lows = document.querySelector('[data-key="lows-this-week"]').value.trim();
+            const appreciation = data.textFields['weekly-appreciation-journal'];
+            const highs = data.textFields['highs-this-week'];
+            const disconnection = data.textFields['disconnection-longing'];
+            const lows = data.textFields['lows-this-week'];
             
             if (appreciation || highs || disconnection || lows) {
                 content += `PART 2: Weekly Emotional Check-in\n`;
@@ -427,45 +457,70 @@
                 
                 if (appreciation || highs) {
                     content += `Appreciation & Connection:\n`;
-                    if (appreciation) content += `${appreciation}\n`;
-                    if (highs) content += `\nEmotional Highs: ${highs}\n`;
+                    if (appreciation) {
+                        content += `Moments of connection and appreciation:\n${appreciation}\n`;
+                    }
+                    if (highs) {
+                        content += `${appreciation ? '\n' : ''}Personal emotional highs this week:\n${highs}\n`;
+                    }
                     content += `\n`;
                 }
                 
                 if (disconnection || lows) {
                     content += `Disconnection & Longing:\n`;
-                    if (disconnection) content += `${disconnection}\n`;
-                    if (lows) content += `\nEmotional Lows: ${lows}\n`;
+                    if (disconnection) {
+                        content += `Moments of disconnection experienced:\n${disconnection}\n`;
+                    }
+                    if (lows) {
+                        content += `${disconnection ? '\n' : ''}Personal emotional lows this week:\n${lows}\n`;
+                    }
                     content += `\n`;
                 }
             }
 
             // Therapy Session Check-in
-            const support = document.querySelector('[data-key="emotional-support"]').value.trim();
-            const comfort = document.querySelector('[data-key="comfort-trust"]').value.trim();
-            const unspoken = document.querySelector('[data-key="unspoken-thoughts"]').value.trim();
+            const support = data.textFields['emotional-support'];
+            const comfort = data.textFields['comfort-trust'];
+            const unspoken = data.textFields['unspoken-thoughts'];
             
             if (support || comfort || unspoken) {
                 content += `THERAPY SESSION CHECK-IN\n`;
                 content += `${'-'.repeat(25)}\n\n`;
                 
-                if (support) content += `Emotional Support:\n${support}\n\n`;
-                if (comfort) content += `Comfort and Trust:\n${comfort}\n\n`;
-                if (unspoken) content += `Unspoken Thoughts:\n${unspoken}\n\n`;
+                if (support) {
+                    content += `Emotional Support:\n${support}\n\n`;
+                }
+                if (comfort) {
+                    content += `Comfort and Trust Level:\n${comfort}\n\n`;
+                }
+                if (unspoken) {
+                    content += `Unspoken Thoughts or Concerns:\n${unspoken}\n\n`;
+                }
+            }
+
+            // Add footer
+            if (content.length > 200) {
+                content += `${'-'.repeat(50)}\n`;
+                content += `This reflection was completed as part of couples therapy homework.\n`;
+                content += `For questions or follow-up, please discuss during your next therapy session.\n`;
             }
 
             return content;
         }
+
+        function generateShareContent() {
+            return formatDataForSharing();
+        }
         
         function exportData() {
-            const content = generateShareContent();
+            const content = formatDataForSharing();
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             
             const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `Couples_Homework_${dateStr}.txt`;
+            link.download = `Couples_Homework_${dateStr.replace(/\s+/g, '_')}.txt`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -499,28 +554,13 @@
             document.body.style.overflow = 'auto';
         }
 
-        function shareViaEmail() {
-            const content = generateShareContent();
-            const subject = encodeURIComponent('Couples Therapy Homework - The Attachment-Informed Love Repair');
-            const body = encodeURIComponent(content);
-            const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
-            
-            try {
-                window.location.href = mailtoUrl;
-                closeShareModal();
-            } catch (error) {
-                console.error('Email sharing failed:', error);
-                alert('Unable to open email client. Please copy the content instead.');
-            }
-        }
-
         function shareViaCopy() {
-            const content = generateShareContent();
+            const content = formatDataForSharing();
             
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(content)
                     .then(() => {
-                        alert('Content copied to clipboard!');
+                        showShareFeedback('Content copied to clipboard!', 'success');
                         closeShareModal();
                     })
                     .catch(error => {
@@ -532,33 +572,23 @@
             }
         }
 
-        function fallbackCopyToClipboard(text) {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.position = 'fixed';
-            textArea.style.opacity = '0';
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
+        function shareViaEmail() {
+            const content = formatDataForSharing();
+            const subject = encodeURIComponent('Couples Therapy Homework - The Attachment-Informed Love Repair');
+            const body = encodeURIComponent(content);
+            const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
             
             try {
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    alert('Content copied to clipboard!');
-                    closeShareModal();
-                } else {
-                    alert('Unable to copy to clipboard. Please select and copy the content manually.');
-                }
+                window.location.href = mailtoUrl;
+                closeShareModal();
             } catch (error) {
-                console.error('Fallback copy failed:', error);
-                alert('Unable to copy to clipboard. Please select and copy the content manually.');
-            } finally {
-                document.body.removeChild(textArea);
+                console.error('Email sharing failed:', error);
+                showShareFeedback('Unable to open email client. Please copy the content instead.', 'error');
             }
         }
 
         function shareViaNative() {
-            const content = generateShareContent();
+            const content = formatDataForSharing();
             const title = 'Couples Therapy Homework';
             
             if (navigator.share) {
@@ -572,14 +602,14 @@
                 .catch(error => {
                     if (error.name !== 'AbortError') {
                         console.error('Native sharing failed:', error);
-                        alert('Sharing failed. Please try another option.');
+                        showShareFeedback('Sharing failed. Please try another option.', 'error');
                     }
                 });
             }
         }
 
         function shareViaDownload() {
-            const content = generateShareContent();
+            const content = formatDataForSharing();
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             
@@ -591,6 +621,15 @@
             link.click();
             document.body.removeChild(link);
             closeShareModal();
+        }
+
+        function showShareFeedback(message, type) {
+            // Simple feedback - you can enhance this with a proper notification system
+            if (type === 'success') {
+                alert('✅ ' + message);
+            } else {
+                alert('❌ ' + message);
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
