@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Couples Therapy Homework</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            background-color: #f4f0ed;
+            color: #374151;
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Cormorant Garamond', serif;
+        }
+        .section-header {
+            position: relative;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .section-header::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 3px;
+            background-color: #D1D5DB;
+            border-radius: 9999px;
+        }
+        .journal-box {
+            background-color: #f0e8e6;
+            border-left: 4px solid #D1D5DB;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .journal-input {
+            width: 100%;
+            min-height: 3rem;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            resize: vertical;
+            transition: border-color 0.2s ease;
+        }
+        .journal-input:focus {
+            outline: none;
+            border-color: #D1D5DB;
+            box-shadow: 0 0 0 3px rgba(209, 213, 219, 0.5);
+        }
+        .btn {
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .checkbox-custom {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            accent-color: #D1D5DB;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: white !important;
+            }
+            .journal-box {
+                background-color: #f9f9f9 !important;
+                page-break-inside: avoid;
+            }
+        }
+        .info-box {
+            background: #fdfae9;
+            border: 1px solid #e6d8a2;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .share-option {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #f9fafb;
+        }
+        .share-option:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .share-option:active {
+            transform: translateY(0);
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <!-- Main Container -->
+    <div class="max-w-4xl mx-auto bg-white p-6 sm:p-10 rounded-3xl shadow-2xl border border-gray-100">
+
+        <!-- Action Buttons -->
+        <div class="no-print flex flex-wrap gap-3 mb-6 justify-center sm:justify-end">
+            <button id="shareBtn" class="btn bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-2 rounded-lg">
+                🔗 Share
+            </button>
+            <button id="exportBtn" class="btn bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-lg">
+                📄 Export Responses
+            </button>
+            <button id="printBtn" class="btn bg-green-100 hover:bg-green-200 text-green-800 px-4 py-2 rounded-lg">
+                🖨️ Print
+            </button>
+            <button id="clearBtn" class="btn bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg">
+                🗑️ Clear All
+            </button>
+        </div>
+
+        <!-- Introductory Header with Logo -->
+        <header class="flex flex-col items-center mb-8 text-center">
+            <div class="mb-4">
+                <img src="https://i.imgur.com/JwAdvDd.png" alt="Janice LaFountaine, MS, LMFT Logo" class="h-24 w-auto rounded-full shadow-md">
+            </div>
+            <div class="flex-grow">
+                <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">Couples Therapy Homework</h1>
+                <p class="text-gray-600 leading-relaxed text-lg mb-4">
+                    The Attachment-Informed Love Repair
+                </p>
+                <div class="info-box text-sm text-gray-700">
+                    <p class="mb-2">💡 <strong>Goal:</strong> This assignment is designed to help you strengthen your emotional bond by intentionally speaking your partner's primary Love Language and practicing emotional repair using principles from Emotionally Focused Therapy (EFT).</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Part 1: Proactive Love -->
+        <h2 class="text-2xl sm:text-3xl font-semibold text-gray-700 mt-12 mb-6 section-header">Part 1: Proactive Love — Filling the Emotional Tank</h2>
+        <p class="text-gray-600 mb-6 leading-relaxed">
+            This week, focus on intentionally filling your partner's emotional "Love Tank" by consistently expressing affection in their primary Love Language.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="journal-box">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Partner 1's Love Language</h3>
+                <textarea class="journal-input" rows="1" data-key="p1-love-language" placeholder="e.g., Quality Time"></textarea>
+            </div>
+            <div class="journal-box">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Partner 2's Love Language</h3>
+                <textarea class="journal-input" rows="1" data-key="p2-love-language" placeholder="e.g., Words of Affirmation"></textarea>
+            </div>
+        </div>
+
+        <div class="journal-box">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Action Steps</h3>
+            <p class="text-sm text-gray-600 mb-4 italic">Choose 2-3 specific actions to complete this week, aimed at your partner.</p>
+            <div class="space-y-3">
+                <label class="flex items-center cursor-pointer hover:bg-white hover:bg-opacity-50 p-2 rounded transition-colors">
+                    <input type="checkbox" class="checkbox-custom" data-key="love-lang-1">Words of Affirmation: Give 3 genuine compliments a day, focusing on character or effort. Send an appreciative text message daily.
+                </label>
+                <label class="flex items-center cursor-pointer hover:bg-white hover:bg-opacity-50 p-2 rounded transition-colors">
+                    <input type="checkbox" class="checkbox-custom" data-key="love-lang-2">Quality Time: Plan at least one 20-minute block of undivided attention (TV off, phone away) for "Quality Conversation." Go on a walk or enjoy a hobby together.
+                </label>
+                <label class="flex items-center cursor-pointer hover:bg-white hover:bg-opacity-50 p-2 rounded transition-colors">
+                    <input type="checkbox" class="checkbox-custom" data-key="love-lang-3">Receiving Gifts: Give a small, thoughtful physical gift 3 times this week (can be handmade or found, like a favorite flower or treat).
+                </label>
+                <label class="flex items-center cursor-pointer hover:bg-white hover:bg-opacity-50 p-2 rounded transition-colors">
+                    <input type="checkbox" class="checkbox-custom" data-key="love-lang-4">Acts of Service: Complete 3 unprompted acts you know your partner appreciates (e.g., wash the car, cook a meal, clean a specific area).
+                </label>
+                <label class="flex items-center cursor-pointer hover:bg-white hover:bg-opacity-50 p-2 rounded transition-colors">
+                    <input type="checkbox" class="checkbox-custom" data-key="love-lang-5">Physical Touch: Initiate non-sexual touch (e.g., a long hug, hand on shoulder, cuddling on the couch) at reunion and separation.
+                </label>
+            </div>
+            <p class="mt-4 text-sm font-semibold text-gray-600">My specific action steps:</p>
+            <textarea class="journal-input" rows="3" data-key="my-action-steps" placeholder="Write down your personalized steps here."></textarea>
+        </div>
+
+        <!-- Part 2: The Weekly Emotional Check-in -->
+        <h2 class="text-2xl sm:text-3xl font-semibold text-gray-700 mt-12 mb-6 section-header">Part 2: The Weekly Emotional Check-in</h2>
+        <p class="text-gray-600 mb-6 leading-relaxed">
+            This part of the assignment is for you to reflect individually on your week and come to our session with a clearer sense of your emotional experience and any moments of connection or disconnection.
+        </p>
+
+        <div class="journal-box">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Appreciation & Connection</h3>
+            <p class="mb-2 text-sm font-semibold text-gray-600">In what moments did you feel most connected and appreciated by your partner this week? What happened?</p>
+            <textarea class="journal-input" rows="3" data-key="weekly-appreciation-journal"></textarea>
+            <p class="mb-2 text-sm font-semibold text-gray-600 mt-4">My personal emotional highs this week:</p>
+            <textarea class="journal-input" rows="2" data-key="highs-this-week"></textarea>
+        </div>
+
+        <div class="journal-box">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Disconnection & Longing</h3>
+            <p class="mb-2 text-sm font-semibold text-gray-600">Think about a time when you felt a moment of disconnection. What was happening for you on a deeper level (e.g., feeling lonely, afraid, unimportant)?</p>
+            <textarea class="journal-input" rows="3" data-key="disconnection-longing"></textarea>
+            <p class="mb-2 text-sm font-semibold text-gray-600 mt-4">My personal emotional lows this week:</p>
+            <textarea class="journal-input" rows="2" data-key="lows-this-week"></textarea>
+        </div>
+        
+        <!-- Therapy Session Check-in -->
+        <h2 class="text-2xl sm:text-3xl font-semibold text-gray-700 mt-12 mb-6 section-header">Therapy Session Check-in</h2>
+        <p class="text-gray-600 mb-6 leading-relaxed">
+            Please bring these reflections with you to our next session to help guide our discussion.
+        </p>
+
+        <div class="journal-box">
+            <p class="font-semibold text-lg text-gray-700 mb-2">Emotional Support</p>
+            <p class="mb-2 text-sm font-semibold text-gray-600">In what specific moments did you feel most supported by your partner? In what moments did you wish for more support?</p>
+            <textarea class="journal-input" rows="3" data-key="emotional-support"></textarea>
+        </div>
+        
+        <div class="journal-box">
+            <p class="font-semibold text-lg text-gray-700 mb-2">Comfort and Trust</p>
+            <p class="mb-2 text-sm font-semibold text-gray-600">How comfortable did you feel discussing vulnerable topics or addressing your raw spots with your partner? Rate your comfort on a scale of 1-10 (1 being very uncomfortable, 10 being very comfortable).</p>
+            <textarea class="journal-input" rows="2" data-key="comfort-trust"></textarea>
+        </div>
+
+        <div class="journal-box">
+            <p class="font-semibold text-lg text-gray-700 mb-2">Unspoken Thoughts</p>
+            <p class="mb-2 text-sm font-semibold text-gray-600">Was there anything you wanted to bring up with your partner or in our therapy session but didn't? If so, what held you back from speaking up?</p>
+            <textarea class="journal-input" rows="3" data-key="unspoken-thoughts"></textarea>
+        </div>
+
+        <!-- Closing Remarks -->
+        <p class="text-gray-600 mt-8 italic text-center text-lg">
+            Remember, this is a shared journey of growth and vulnerability. I'm here to support you both as you build a stronger, more secure connection.
+        </p>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">Share Your Responses</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            
+            <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p class="text-sm text-yellow-800">
+                    <strong>Privacy Reminder:</strong> This contains personal and sensitive information. Please share thoughtfully and only with trusted individuals.
+                </p>
+            </div>
+
+            <div class="space-y-3">
+                <div class="share-option" id="shareEmail">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-3">📧</span>
+                        <div>
+                            <div class="font-semibold text-gray-800">Email</div>
+                            <div class="text-sm text-gray-600">Send via your email client</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="share-option" id="shareCopy">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-3">📋</span>
+                        <div>
+                            <div class="font-semibold text-gray-800">Copy to Clipboard</div>
+                            <div class="text-sm text-gray-600">Copy formatted text to paste elsewhere</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="share-option hidden" id="shareNative">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-3">🔗</span>
+                        <div>
+                            <div class="font-semibold text-gray-800">Share</div>
+                            <div class="text-sm text-gray-600">Use your device's share options</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="share-option" id="shareDownload">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-3">💾</span>
+                        <div>
+                            <div class="font-semibold text-gray-800">Download File</div>
+                            <div class="text-sm text-gray-600">Save as a text file</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const storagePrefix = 'couples_homework_';
+
+        function showSaveIndicator(status) {
+            // Placeholder function for save indicator
+        }
+        
+        function saveData(key, value) {
+            try {
+                localStorage.setItem(`${storagePrefix}${key}`, value);
+            } catch (e) {
+                console.error('Error saving data:', e);
+            }
+        }
+        
+        function loadData() {
+            document.querySelectorAll('textarea[data-key]').forEach(textarea => {
+                const key = textarea.getAttribute('data-key');
+                const savedValue = localStorage.getItem(`${storagePrefix}${key}`);
+                if (savedValue) {
+                    textarea.value = savedValue;
+                }
+            });
+            
+            document.querySelectorAll('input[type="checkbox"][data-key]').forEach(checkbox => {
+                const key = checkbox.getAttribute('data-key');
+                const savedValue = localStorage.getItem(`${storagePrefix}${key}`);
+                if (savedValue === 'true') {
+                    checkbox.checked = true;
+                }
+            });
+        }
+        
+        function setupAutoSave() {
+            document.querySelectorAll('textarea[data-key]').forEach(textarea => {
+                let saveTimeout;
+                textarea.addEventListener('input', function() {
+                    clearTimeout(saveTimeout);
+                    saveTimeout = setTimeout(() => {
+                        saveData(this.getAttribute('data-key'), this.value);
+                    }, 1000);
+                });
+            });
+            
+            document.querySelectorAll('input[type="checkbox"][data-key]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    saveData(this.getAttribute('data-key'), this.checked.toString());
+                });
+            });
+        }
+
+        function collectAllData() {
+            const data = {
+                textFields: {},
+                checkboxes: {}
+            };
+            
+            // Collect all textarea values directly from form elements
+            document.querySelectorAll('textarea[data-key]').forEach(textarea => {
+                const key = textarea.getAttribute('data-key');
+                const value = textarea.value.trim();
+                if (value) {
+                    data.textFields[key] = value;
+                }
+            });
+            
+            // Collect all checkbox states directly from form elements
+            document.querySelectorAll('input[type="checkbox"][data-key]').forEach(checkbox => {
+                const key = checkbox.getAttribute('data-key');
+                if (checkbox.checked) {
+                    data.checkboxes[key] = checkbox.parentNode.textContent.trim();
+                }
+            });
+            
+            return data;
+        }
+
+        function formatDataForSharing() {
+            const data = collectAllData();
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            let content = `Couples Therapy Homework: The Attachment-Informed Love Repair\n`;
+            content += `Completed by: [Your Name]\n`;
+            content += `Date: ${dateStr}\n`;
+            content += `Therapist: Janice LaFountaine, MS, LMFT\n`;
+            content += `${'='.repeat(70)}\n\n`;
+
+            // Part 1 - Love Languages
+            const p1Language = data.textFields['p1-love-language'];
+            const p2Language = data.textFields['p2-love-language'];
+            const actionSteps = data.textFields['my-action-steps'];
+            const hasLoveLanguageData = p1Language || p2Language || actionSteps || Object.keys(data.checkboxes).some(key => key.startsWith('love-lang-'));
+            
+            if (hasLoveLanguageData) {
+                content += `PART 1: Proactive Love — Filling the Emotional Tank\n`;
+                content += `${'-'.repeat(50)}\n\n`;
+                
+                if (p1Language) content += `Partner 1's Love Language: ${p1Language}\n`;
+                if (p2Language) content += `Partner 2's Love Language: ${p2Language}\n`;
+                if (p1Language || p2Language) content += `\n`;
+
+                // Collect selected action steps
+                const selectedActions = [];
+                Object.keys(data.checkboxes).forEach(key => {
+                    if (key.startsWith('love-lang-')) {
+                        selectedActions.push(`• ${data.checkboxes[key]}`);
+                    }
+                });
+                
+                if (selectedActions.length > 0) {
+                    content += `Selected Action Steps:\n`;
+                    selectedActions.forEach(action => content += `${action}\n`);
+                    content += `\n`;
+                }
+
+                if (actionSteps) {
+                    content += `My Specific Action Steps:\n${actionSteps}\n\n`;
+                }
+            }
+
+            // Part 2 - Emotional Check-in
+            const appreciation = data.textFields['weekly-appreciation-journal'];
+            const highs = data.textFields['highs-this-week'];
+            const disconnection = data.textFields['disconnection-longing'];
+            const lows = data.textFields['lows-this-week'];
+            
+            if (appreciation || highs || disconnection || lows) {
+                content += `PART 2: Weekly Emotional Check-in\n`;
+                content += `${'-'.repeat(35)}\n\n`;
+                
+                if (appreciation || highs) {
+                    content += `Appreciation & Connection:\n`;
+                    if (appreciation) {
+                        content += `Moments of connection and appreciation:\n${appreciation}\n`;
+                    }
+                    if (highs) {
+                        content += `${appreciation ? '\n' : ''}Personal emotional highs this week:\n${highs}\n`;
+                    }
+                    content += `\n`;
+                }
+                
+                if (disconnection || lows) {
+                    content += `Disconnection & Longing:\n`;
+                    if (disconnection) {
+                        content += `Moments of disconnection experienced:\n${disconnection}\n`;
+                    }
+                    if (lows) {
+                        content += `${disconnection ? '\n' : ''}Personal emotional lows this week:\n${lows}\n`;
+                    }
+                    content += `\n`;
+                }
+            }
+
+            // Therapy Session Check-in
+            const support = data.textFields['emotional-support'];
+            const comfort = data.textFields['comfort-trust'];
+            const unspoken = data.textFields['unspoken-thoughts'];
+            
+            if (support || comfort || unspoken) {
+                content += `THERAPY SESSION CHECK-IN\n`;
+                content += `${'-'.repeat(25)}\n\n`;
+                
+                if (support) {
+                    content += `Emotional Support:\n${support}\n\n`;
+                }
+                if (comfort) {
+                    content += `Comfort and Trust Level:\n${comfort}\n\n`;
+                }
+                if (unspoken) {
+                    content += `Unspoken Thoughts or Concerns:\n${unspoken}\n\n`;
+                }
+            }
+
+            // Add footer
+            if (content.length > 200) {
+                content += `${'-'.repeat(50)}\n`;
+                content += `This reflection was completed as part of couples therapy homework.\n`;
+                content += `For questions or follow-up, please discuss during your next therapy session.\n`;
+            }
+
+            return content;
+        }
+
+        function generateShareContent() {
+            return formatDataForSharing();
+        }
+        
+        function exportData() {
+            const content = formatDataForSharing();
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Couples_Homework_${dateStr.replace(/\s+/g, '_')}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function clearData() {
+            const confirmed = confirm("Are you sure you want to clear ALL responses for this form? This action cannot be undone.");
+            if (!confirmed) {
+                return;
+            }
+            
+            document.querySelectorAll('[data-key]').forEach(element => {
+                if (element.tagName === 'TEXTAREA') {
+                    element.value = '';
+                } else if (element.type === 'checkbox') {
+                    element.checked = false;
+                }
+                localStorage.removeItem(`${storagePrefix}${element.getAttribute('data-key')}`);
+            });
+            alert("All responses have been cleared.");
+        }
+
+        // Share functionality
+        function openShareModal() {
+            document.getElementById('shareModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function shareViaCopy() {
+            const content = formatDataForSharing();
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(content)
+                    .then(() => {
+                        showShareFeedback('Content copied to clipboard!', 'success');
+                        closeShareModal();
+                    })
+                    .catch(error => {
+                        console.error('Clipboard copy failed:', error);
+                        fallbackCopyToClipboard(content);
+                    });
+            } else {
+                fallbackCopyToClipboard(content);
+            }
+        }
+
+        function shareViaEmail() {
+            const content = formatDataForSharing();
+            const subject = encodeURIComponent('Couples Therapy Homework - The Attachment-Informed Love Repair');
+            const body = encodeURIComponent(content);
+            const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
+            
+            try {
+                window.location.href = mailtoUrl;
+                closeShareModal();
+            } catch (error) {
+                console.error('Email sharing failed:', error);
+                showShareFeedback('Unable to open email client. Please copy the content instead.', 'error');
+            }
+        }
+
+        function shareViaNative() {
+            const content = formatDataForSharing();
+            const title = 'Couples Therapy Homework';
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: content
+                })
+                .then(() => {
+                    closeShareModal();
+                })
+                .catch(error => {
+                    if (error.name !== 'AbortError') {
+                        console.error('Native sharing failed:', error);
+                        showShareFeedback('Sharing failed. Please try another option.', 'error');
+                    }
+                });
+            }
+        }
+
+        function shareViaDownload() {
+            const content = formatDataForSharing();
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Couples_Homework_${dateStr.replace(/\s+/g, '_')}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            closeShareModal();
+        }
+
+        function showShareFeedback(message, type) {
+            // Simple feedback - you can enhance this with a proper notification system
+            if (type === 'success') {
+                alert('✅ ' + message);
+            } else {
+                alert('❌ ' + message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            setupAutoSave();
+            
+            // Existing button event listeners
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+            document.getElementById('printBtn').addEventListener('click', () => window.print());
+            document.getElementById('clearBtn').addEventListener('click', clearData);
+            
+            // Share functionality event listeners
+            document.getElementById('shareBtn').addEventListener('click', openShareModal);
+            document.getElementById('closeModal').addEventListener('click', closeShareModal);
+            
+            // Share options
+            document.getElementById('shareEmail').addEventListener('click', shareViaEmail);
+            document.getElementById('shareCopy').addEventListener('click', shareViaCopy);
+            document.getElementById('shareDownload').addEventListener('click', shareViaDownload);
+            
+            // Check if native sharing is available
+            if (navigator.share) {
+                document.getElementById('shareNative').classList.remove('hidden');
+                document.getElementById('shareNative').addEventListener('click', shareViaNative);
+            }
+            
+            // Close modal when clicking backdrop
+            document.getElementById('shareModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeShareModal();
+                }
+            });
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !document.getElementById('shareModal').classList.contains('hidden')) {
+                    closeShareModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
